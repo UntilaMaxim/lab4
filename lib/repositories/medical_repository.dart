@@ -1,24 +1,28 @@
-import 'dart:convert';
-
-import 'package:flutter/services.dart';
 
 import '../models/app_data.dart';
 
-class MedicalRepository {
-  Future<AppData> loadData() async {
-    // Delay pentru a putea vedea starea Loading
-    await Future.delayed(
-      const Duration(seconds: 1),
+import '../data/datasources/medical_remote_data_source.dart';
+import '../data/repositories/medical_repository_impl.dart';
+
+import '../domain/repositories/medical_repository_contract.dart';
+import '../domain/usecases/load_medical_data.dart';
+
+class MedicalRepository
+    implements MedicalRepositoryContract {
+  late final LoadMedicalData _loadMedicalData;
+
+  MedicalRepository({
+    MedicalRemoteDataSource? remoteDataSource,
+  }) {
+    final repository = MedicalRepositoryImpl(
+      remoteDataSource: remoteDataSource,
     );
 
-    final jsonString =
-    await rootBundle.loadString(
-      'assets/data/lab_v2.json',
-    );
+    _loadMedicalData = LoadMedicalData(repository);
+  }
 
-    final Map<String, dynamic> jsonData =
-    jsonDecode(jsonString);
-
-    return AppData.fromJson(jsonData);
+  @override
+  Future<AppData> loadData() {
+    return _loadMedicalData();
   }
 }
